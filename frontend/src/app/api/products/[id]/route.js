@@ -13,14 +13,14 @@ export async function GET(request, { params }) {
     }
 
     const backendUrl = process.env.BACKEND_URL || 'http://localhost:4000';
-    const response = await fetch(`${backendUrl}/api/products/${encodeURIComponent(id)}`);
+    const response = await fetch(`${backendUrl}/api/books/${encodeURIComponent(id)}`);
     
     if (!response.ok) {
       if (response.status === 404) {
         return NextResponse.json({ 
           message: 'Producto no encontrado',
           error: 'PRODUCT_NOT_FOUND',
-          productId: id
+          bookId: id
         }, { status: 404 });
       }
     }
@@ -31,7 +31,7 @@ export async function GET(request, { params }) {
     
   } catch (error) {
     console.error('Error al obtener producto:', {
-      productId: productId,
+      bookId: bookId,
       error: error.message,
       stack: error.stack
     });

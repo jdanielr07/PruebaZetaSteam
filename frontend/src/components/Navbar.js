@@ -2,20 +2,30 @@
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useState, useEffect, useRef } from 'react';
+import { useAuth } from '@/context/AuthContext';
+import { useCart } from '@/context/CartContext';
+import { Library } from 'lucide-react';
 
 export default function Navbar() {
   const pathname = usePathname();
+  const { user } = useAuth();
+  const { cart } = useCart();
   const router = useRouter();
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
   const searchRef = useRef(null);
   const dropdownRef = useRef(null);
+  const totalItems = cart.reduce((acc, item) => acc + item.quantity, 0);
 
   const isActive = (path) => pathname === path ? 'text-blue-500 font-bold' : '';
+  
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
-  // Búsqueda en tiempo real con debounce
   useEffect(() => {
     if (searchTerm.trim().length > 2) {
       const timeoutId = setTimeout(() => {
@@ -29,7 +39,6 @@ export default function Navbar() {
     }
   }, [searchTerm]);
 
-  // Cerrar dropdown al hacer clic fuera
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target) &&
@@ -45,14 +54,15 @@ export default function Navbar() {
   const performSearch = async (query) => {
     try {
       setIsSearching(true);
-      const response = await fetch(`/api/products/search?q=${encodeURIComponent(query)}`);
+      console.log('Search term being sent:', query);
+      const response = await fetch(`http://localhost:4000/api/books?search=${encodeURIComponent(query.trim())}`)
       
       if (!response.ok) {
         throw new Error('Error en la búsqueda');
       }
       
       const data = await response.json();
-      setSearchResults(data.products.slice(0, 5) || []); // Mostrar solo los primeros 5 resultados
+      setSearchResults(data.slice(0, 5) || []); // Mostrar solo los primeros 5 resultados
       setShowDropdown(true);
     } catch (error) {
       console.error('Error en búsqueda:', error);
@@ -72,11 +82,11 @@ export default function Navbar() {
     }
   };
 
-  const handleResultClick = (product) => {
+  const handleResultClick = (book) => {
     setSearchTerm('');
     setShowDropdown(false);
     setSearchResults([]);
-    router.push(`/products/${product.id}`);
+    router.push(`/books/${book.id}`);
   };
 
   const handleSeeAllResults = () => {
@@ -96,9 +106,16 @@ export default function Navbar() {
 
   return (
     <nav className="bg-white shadow p-4 flex justify-between items-center">
-      <Link href="/" className="text-xl font-bold text-gray-800">📚 ZETA Library</Link>
+      <Link href="/" className="text-xl font-bold flex">
+      <Library className='mr-1'/>
+      <p className='text-purple-800'>
+        ZETA
+      </p>
+      <p className='text-gray-800 ml-2'>
+         Library
+      </p>
+      </Link>
       
-      {/* Campo de búsqueda */}
       <div className="flex-1 max-w-md mx-8 relative">
         <form onSubmit={handleSearch} className="relative">
           <input
@@ -129,32 +146,25 @@ export default function Navbar() {
           >
             {searchResults.length > 0 ? (
               <>
-                {searchResults.map((product) => (
+                {searchResults.map((book) => (
                   <div
-                    key={product.id}
-                    onClick={() => handleResultClick(product)}
+                    key={book.id}
+                    onClick={() => handleResultClick(book)}
                     className="p-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0"
                   >
                     <div className="flex items-center space-x-3">
-                      {product.image && (
-                        <img 
-                          src={product.image} 
-                          alt={product.name}
-                          className="w-12 h-12 object-cover rounded"
-                        />
-                      )}
                       <div className="flex-1 min-w-0">
                         <div className="font-medium text-gray-900 truncate">
-                          {product.name}
+                          {book.title}
                         </div>
-                        {product.description && (
+                        {book.description && (
                           <div className="text-sm text-gray-500 truncate">
-                            {product.description}
+                            {book.author}
                           </div>
                         )}
-                        {product.price && (
+                        {book.price && (
                           <div className="text-sm text-blue-600 font-medium">
-                            ${product.price}
+                            ${book.price}
                           </div>
                         )}
                       </div>
@@ -181,9 +191,20 @@ export default function Navbar() {
 
       <div className="space-x-4">
         <Link href="/" className={isActive('/')}>Inicio</Link>
-        <Link href="/login" className={isActive('/login')}>Iniciar sesión</Link>
-        <Link href="/dashboard" className={isActive('/dashboard')}>Dashboard</Link>
-        <Link href="/cart" className={isActive('/cart')}>Carrito</Link>
+        {!user && <Link href="/login" className={isActive('/login')}>Iniciar sesión</Link>}
+        {!user && <Link href="/register" className={isActive('/register')}>Registrarse</Link>}
+        {user && <Link href="/dashboard" className={isActive('/dashboard')}>Panel</Link>}
+        {user?.role === 'admin' && <Link href="/admin" className={isActive('/admin')}>Admin</Link>}
+        {user?.role === 'admin' && <Link href="/admin/books" className={isActive('/admin/books')}>Productos</Link>}
+        {user?.role === 'admin' && <Link href="/admin/create" className={isActive('/admin/create')}>Crear libro</Link>}
+        <Link href="/cart" className={`relative inline-flex items-center ${isActive('/cart')}`}>
+          <span>Carrito</span>
+          {isMounted && totalItems > 0 && (
+            <span className="ml-1 inline-flex items-center justify-center px-2 py-0.5 text-xs font-bold leading-none text-white bg-blue-600 rounded-full">
+              {totalItems}
+            </span>
+          )}
+        </Link>
       </div>
     </nav>
   );

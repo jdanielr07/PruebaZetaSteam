@@ -1,8 +1,9 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const User = require('../models/User');
 const router = express.Router();
+const sequelize = require('../config/db');
+const { User } = require('../config/db');
 
 router.post('/register', async (req, res) => {
   const { username, password, role } = req.body;
@@ -17,17 +18,26 @@ router.post('/register', async (req, res) => {
 
 router.post('/login', async (req, res) => {
   const { username, password } = req.body;
+
   try {
     const user = await User.findOne({ where: { username } });
-    if (!user || !(await bcrypt.compare(password, user.password))) {
+
+    if (!user) {
+      console.log('Usuario no encontrado');
       return res.status(401).json({ message: 'Credenciales inválidas' });
     }
 
-    const token = jwt.sign({ id: user.id, role: user.role }, process.env.JWT_SECRET);
+    const valid = await bcrypt.compare(password, user.password);
+    if (!valid) {
+      console.log('Contraseña incorrecta');
+      return res.status(401).json({ message: 'Credenciales inválidas' });
+    }
+
+    const token = jwt.sign({ id: user.id, role: user.role, username: user.username }, process.env.JWT_SECRET);
     res.json({ token });
   } catch (err) {
-    res.status(500).json({ error: 'Error al iniciar sesión' });
+    console.error('Error en login:', err);
+    res.status(500).json({ message: 'Error en el servidor' });
   }
 });
-
 module.exports = router;
