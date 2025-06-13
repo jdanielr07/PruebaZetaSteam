@@ -9,6 +9,7 @@ app.use(express.json());
 
 app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/products', require('./routes/productRoutes'));
+app.use('/api/dev', require('./routes/devRoutes'));
 
 sequelize.sync().then(() => {
   console.log('Base de datos conectada');
