@@ -6,14 +6,11 @@ const { verifyToken } = require('../middleware/auth');
 // Obtener carrito del usuario
 router.get('/', verifyToken, async (req, res) => {
   try {
-    console.log('GET /api/cart for user_id:', req.user.id);
-
+    
     const cart = await Cart.findOrCreate({
       where: { user_id: req.user.id },
       include: { model: CartItem, include: Book },
     });
-
-    console.log('Cart result:', cart);
 
     res.json(cart[0]);
   } catch (err) {

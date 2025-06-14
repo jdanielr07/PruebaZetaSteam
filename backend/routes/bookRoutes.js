@@ -1,44 +1,60 @@
 const express = require('express');
 const { verifyToken, isAdmin } = require('../middleware/auth');
+const verifyTokenOptional = require('../middleware/verifyTokenOptional');
 const sequelize = require('../config/db');
 const BookModel = require('../models/Book');
-const { Book } = require('../config/db');
+const { Book, Genre } = require('../config/db');
 const { Op } = require('sequelize');
 const router = express.Router();
 
 // Obtener todos los libros
-router.get('/', async (req, res) => {
-    console.log('Request query parameters:', req.query); // Ver todos los parámetros que llegan en la solicitud
-  const search = req.query.search?.trim() || '';
-  console.log('Search term received in backend:', search);
+router.get('/', verifyTokenOptional, async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const offset = (page - 1) * limit;
 
-    try {
-      let whereCondition = {};
-  
-      if (search.length >= 2) {
-        whereCondition = {
-          [Op.or]: [
-            { title: { [Op.iLike]: `%${search}%` } },
-            { author: { [Op.iLike]: `%${search}%` } },
-            { genre: { [Op.iLike]: `%${search}%` } },
-            { isbn: { [Op.iLike]: `%${search}%` } },
-          ],
-        };
-      }
-  
-      const books = await Book.findAll({
-        where: whereCondition,
-      });
-  
-      console.log('Search:', search);
-      console.log('Results count:', books.length);
-  
-      res.json(books);
-    } catch (err) {
-      console.error('Error al buscar libros:', err);
-      res.status(500).json({ message: 'Error al obtener libros' });
+    const userIsAdmin = req.user?.role === 'admin';
+
+    const whereClause = userIsAdmin ? {} : { active: true };
+    if (req.query.genre) {
+      whereClause.genre_id = parseInt(req.query.genre);
     }
-  });
+
+    const { count, rows } = await Book.findAndCountAll({
+      where: whereClause,
+      limit,
+      offset,
+      order: [['createdAt', 'DESC']],
+      include: [
+        {
+          model: Genre,
+          attributes: ['id', 'name']
+        },
+      ],
+    });
+
+    res.json({
+      total: count,
+      page,
+      pages: Math.ceil(count / limit),
+      books: rows,
+    });
+  } catch (err) {
+    console.error('Error al obtener libros:', err);
+    res.status(500).json({ message: 'Error al obtener libros' });
+  }
+});
+
+router.get('/genres', async (req, res) => {
+  try {
+    const genres = await Genre.findAll({ order: [['name', 'ASC']] });
+    res.json(genres);
+  } catch (err) {
+    console.error('Error al obtener géneros', err);
+    res.status(500).json({ message: 'Error al obtener géneros' });
+  }
+});
 
 // Obtener un libro por id
 router.get('/:id', async (req, res) => {
@@ -81,10 +97,10 @@ router.put('/:id', verifyToken, isAdmin, async (req, res) => {
 // Eliminar libro
 router.delete('/:id', verifyToken, isAdmin, async (req, res) => {
   try {
-    await Book.destroy({ where: { id: req.params.id } });
-    res.json({ message: 'Libro eliminado' });
+    await Book.update({ active: false }, { where: { id: req.params.id } });
+    res.json({ message: 'Libro marcado como inactivo' });
   } catch (err) {
-    console.error(err);
+    console.error('Error al marcar libro como inactivo:', err);
     res.status(500).json({ message: 'Error al eliminar libro' });
   }
 });

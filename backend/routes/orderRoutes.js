@@ -17,7 +17,7 @@ router.post('/', verifyToken, async (req, res) => {
   try {
     // Crear la orden
     const order = await Order.create({
-      user_id: req.user.id, // si estás usando verifyToken
+      user_id: req.user.id,
       total_price,
     });
 

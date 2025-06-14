@@ -21,8 +21,6 @@ export async function POST(request) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        // Aquí puedes incluir el token de autenticación si es necesario
-        // 'Authorization': `Bearer ${token}`
       },
       body: JSON.stringify(body)
     });
@@ -58,12 +56,7 @@ export async function GET(request) {
     if (searchParams.get('q')) params.set('q', searchParams.get('q'));
 
     // Enviar la petición al backend
-    const response = await fetch(`${API_BASE_URL}/books?${params.toString()}`, {
-      headers: {
-        // Aquí puedes incluir el token de autenticación si es necesario
-        // 'Authorization': `Bearer ${token}`
-      }
-    });
+    const response = await fetch(`${API_BASE_URL}/books?${params.toString()}`);
 
     const data = await response.json();
 

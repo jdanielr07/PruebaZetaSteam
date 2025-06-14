@@ -13,33 +13,60 @@ export default function LoginPage() {
     e.preventDefault();
     try {
       await login(form.username, form.password);
-      router.push('/dashboard');
+      router.push('/');
     } catch (err) {
       setError('Credenciales inválidas');
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="max-w-md mx-auto mt-10 p-6 bg-white shadow rounded">
-      <h1 className="text-xl font-bold mb-4">Iniciar sesión</h1>
-      {error && <p className="text-red-600 mb-2">{error}</p>}
-      <input
-        type="text"
-        placeholder="Usuario"
-        value={form.username}
-        onChange={(e) => setForm({ ...form, username: e.target.value })}
-        className="w-full border p-2 mb-4"
-      />
-      <input
-        type="password"
-        placeholder="Contraseña"
-        value={form.password}
-        onChange={(e) => setForm({ ...form, password: e.target.value })}
-        className="w-full border p-2 mb-4"
-      />
-      <button type="submit" className="bg-blue-600 text-white w-full py-2 rounded">
-        Ingresar
-      </button>
-    </form>
+    <div className="flex justify-center items-center bg-gray-100 mt-5">
+      <div className="bg-white p-8 rounded-lg shadow-lg w-96">
+        <h2 className="text-2xl font-bold text-center mb-6">Iniciar sesión</h2>
+
+        {error && (
+          <div className="bg-red-100 text-red-800 p-2 rounded mb-4">
+            {error}
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit}>
+          <div className="mb-4">
+            <label htmlFor="username" className="block text-sm font-medium text-gray-700">
+              Nombre de usuario
+            </label>
+            <input
+              type="text"
+              id="username"
+              value={form.username}
+              onChange={(e) => setForm({ ...form, username: e.target.value })}
+              className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="Ingrese su nombre de usuario"
+            />
+          </div>
+
+          <div className="mb-6">
+            <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+              Contraseña
+            </label>
+            <input
+              type="password"
+              id="password"
+              value={form.password}
+              onChange={(e) => setForm({ ...form, password: e.target.value })}
+              className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="Ingrese su contraseña"
+            />
+          </div>
+
+          <button
+            type="submit"
+            className="w-full bg-blue-500 text-white p-2 rounded-lg hover:bg-blue-600 transition"
+          >
+            Ingresar
+          </button>
+        </form>
+      </div>
+    </div>
   );
 }

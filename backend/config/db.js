@@ -11,15 +11,14 @@ const sequelize = new Sequelize(
   }
 );
 
-// MODELS
 const User = require('../models/User')(sequelize, Sequelize.DataTypes);
 const Book = require('../models/Book')(sequelize, Sequelize.DataTypes);
+const Genre = require('../models/Genre')(sequelize, Sequelize.DataTypes);
 const Cart = require('../models/Cart')(sequelize, Sequelize.DataTypes);
 const CartItem = require('../models/CartItem')(sequelize, Sequelize.DataTypes);
 const Order = require('../models/Order')(sequelize, Sequelize.DataTypes);
 const OrderItem = require('../models/OrderItem')(sequelize, Sequelize.DataTypes);
 
-// RELATIONS
 
 // User - Cart
 User.hasOne(Cart, { foreignKey: 'user_id' });
@@ -45,11 +44,14 @@ OrderItem.belongsTo(Order, { foreignKey: 'order_id' });
 Book.hasMany(OrderItem, { foreignKey: 'book_id' });
 OrderItem.belongsTo(Book, { foreignKey: 'book_id' });
 
-// EXPORT
+Genre.hasMany(Book, { foreignKey: 'genre_id' });
+Book.belongsTo(Genre, { foreignKey: 'genre_id' });
+
 module.exports = {
   sequelize,
   User,
   Book,
+  Genre,
   Cart,
   CartItem,
   Order,

@@ -14,23 +14,14 @@ export default function BookDetailPage() {
     }
   }, [id]);
 
-  const fetchBook = async (bookId) => {
+  const fetchBook = async () => {
     try {
-      setLoading(true);
-      const response = await fetch(`http://localhost:4000/api/books/${bookId}`);
-
-      if (!response.ok) {
-        throw new Error('Libro no encontrado');
-      }
-
-      const data = await response.json();
-      setBook(data);
+      const res = await axios.get(`http://localhost:4000/api/books/${id}`);
+      setBook(res.data);
     } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
+      console.error('Error al obtener libro', err);
     }
-  };
+  };  
 
   if (loading) {
     return (

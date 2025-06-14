@@ -16,12 +16,12 @@ export default function BookCard({ book }) {
 
   return (
     <div
-      onClick={handleClick}
-      className="cursor-pointer rounded-lg shadow hover:shadow-lg transition duration-200 p-4 bg-white flex flex-col"
+      className="rounded-lg shadow hover:shadow-lg transition duration-200 p-4 bg-white flex flex-col"
     >
       {/* Imagen */}
       {book.image && (
         <img
+          onClick={handleClick}
           src={book.image}
           alt={book.title}
           className="w-full h-48 object-cover mb-4 rounded"
@@ -41,7 +41,7 @@ export default function BookCard({ book }) {
       <button
         onClick={handleAddToCart}
         disabled={book.stock <= 0}
-        className={`mt-auto py-1 px-3 rounded ${
+        className={`mt-auto py-1 px-3 rounded cursor-pointer ${
           book.stock > 0
             ? 'bg-blue-600 text-white hover:bg-blue-700'
             : 'bg-gray-400 text-gray-700 cursor-not-allowed'

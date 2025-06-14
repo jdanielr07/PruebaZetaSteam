@@ -44,7 +44,6 @@ export function CartProvider({ children }) {
   const { user } = useAuth();
   const [cart, dispatch] = useReducer(cartReducer, initialState);
 
-  // 🚩 Cargar carrito al loguearse
   useEffect(() => {
     const fetchCart = async () => {
       if (!user?.token) {
@@ -63,8 +62,7 @@ export function CartProvider({ children }) {
 
         const data = await response.json();
 
-        // Mapear CartItems → [{ book_id, quantity, Book }]
-        const items = data.CartItems.map(item => ({
+        const items = data?.CartItems.map(item => ({
           book_id: item.book_id,
           quantity: item.quantity,
           book: item.Book,
@@ -79,7 +77,6 @@ export function CartProvider({ children }) {
     fetchCart();
   }, [user]);
 
-  // 🚩 Sincronizar cambios con API
   const addItem = async (book) => {
     try {
       await fetch('http://localhost:4000/api/cart', {

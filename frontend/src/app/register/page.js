@@ -23,10 +23,9 @@ export default function RegisterPage() {
       await axios.post('http://localhost:4000/api/auth/register', {
         username: form.username,
         password: form.password,
-        role: 'user', // siempre como user (¡no permitimos admin aquí!)
+        role: 'user',
       });
 
-      // Redirige al login
       router.push('/login');
     } catch (err) {
       console.error(err);
