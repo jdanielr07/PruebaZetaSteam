@@ -8,13 +8,12 @@ export async function GET(request) {
     if (!query) {
       return NextResponse.json({ 
         message: 'Parámetro de búsqueda requerido',
-        products: [] 
+        books: [] 
       }, { status: 400 });
     }
 
-    // Llamada a tu backend
     const backendUrl = process.env.BACKEND_URL || 'http://localhost:4000';
-    const response = await fetch(`${backendUrl}/api/products/search?q=${encodeURIComponent(query)}`);
+    const response = await fetch(`${backendUrl}/api/books?search=${encodeURIComponent(query.trim())}`);
     
     if (!response.ok) {
       throw new Error(`Error del backend: ${response.status}`);
@@ -28,7 +27,7 @@ export async function GET(request) {
     return NextResponse.json({ 
       message: 'Error al buscar productos',
       error: error.message,
-      products: []
+      books: []
     }, { status: 500 });
   }
 }

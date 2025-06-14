@@ -1,38 +1,40 @@
 'use client';
 import { useSearchParams } from 'next/navigation';
 import { useState, useEffect } from 'react';
-import ProductCard from '@/components/ProductCard';
+import BookCard from '@/components/BookCard';
 
 export default function SearchPage() {
   const searchParams = useSearchParams();
   const query = searchParams.get('q');
-  const [products, setProducts] = useState([]);
+  const [books, setBooks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    if (query) {
-      searchProducts(query);
+    if (query && query.trim().length >= 2) {
+      searchBooks(query);
+    } else {
+      setBooks([]);
     }
   }, [query]);
 
-  const searchProducts = async (searchTerm) => {
+  const searchBooks = async (searchTerm) => {
     try {
       setLoading(true);
       setError(null);
       
       // Llamada a tu API de búsqueda
-      const response = await fetch(`/api/products/search?q=${encodeURIComponent(searchTerm)}`);
-      
+      const response = await fetch(`http://localhost:4000/api/books?search=${encodeURIComponent(searchTerm.trim())}`);
+
       if (!response.ok) {
         throw new Error('Error en la búsqueda');
       }
       
       const data = await response.json();
-      setProducts(data.products || []);
+      setBooks(data || []);
     } catch (err) {
       setError(err.message);
-      setProducts([]);
+      setBooks([]);
     } finally {
       setLoading(false);
     }
@@ -61,7 +63,7 @@ export default function SearchPage() {
         )}
         {!loading && (
           <p className="text-sm text-gray-500 mt-1">
-            {products.length} resultado{products.length !== 1 ? 's' : ''} encontrado{products.length !== 1 ? 's' : ''}
+            {books.length} resultado{books.length !== 1 ? 's' : ''} encontrado{books.length !== 1 ? 's' : ''}
           </p>
         )}
       </div>
@@ -72,7 +74,7 @@ export default function SearchPage() {
         </div>
       )}
 
-      {!loading && !error && products.length === 0 && (
+      {!loading && !error && books.length === 0 && (
         <div className="text-center py-12">
           <div className="text-gray-500 text-lg mb-4">
             No se encontraron resultados para "{query}"
@@ -83,10 +85,10 @@ export default function SearchPage() {
         </div>
       )}
 
-      {!loading && !error && products.length > 0 && (
+      {!loading && !error && books.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {products.map((product) => (
-            <ProductCard key={product.id} product={product} />
+          {books.map((book) => (
+            <BookCard key={book.id} book={book} />
           ))}
         </div>
       )}
